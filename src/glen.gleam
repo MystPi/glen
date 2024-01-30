@@ -326,8 +326,10 @@ pub fn get_query(req: Request) -> List(#(String, String)) {
 /// # Examples
 ///
 /// ```
-/// use <- glen.require_method(req, http.Get)
-/// "Hey there!" |> glen.html(status.ok) |> promise.resolve
+/// fn handle_req(req) {
+///   use <- glen.require_method(req, http.Get)
+///   // ...only GET requests are allowed...
+/// }
 /// ```
 pub fn require_method(
   req: Request,
@@ -350,8 +352,10 @@ pub fn require_method(
 /// # Examples
 ///
 /// ```
-/// use <- glen.require_content_type(req, "text/html")
-/// "You gave a text body" |> glen.html(status.ok) |> promise.resolve
+/// fn handle_req(req) {
+///   use <- glen.require_content_type(req, "text/html")
+///   // ...the request's content-type must be text/html...
+/// }
 /// ```
 pub fn require_content_type(
   req: Request,
@@ -390,11 +394,13 @@ fn handle_read_errors(
 /// # Examples
 ///
 /// ```
-/// use string_body <- glen.require_string_body(req)
+/// fn handle_req(req) {
+///   use string_body <- glen.require_string_body(req)
 ///
-/// "You gave me: " <> glen.escape_html(string_body)
-/// |> glen.html(status.ok)
-/// |> promise.resolve
+///   "You gave me: " <> glen.escape_html(string_body)
+///   |> glen.html(status.ok)
+///   |> promise.resolve
+/// }
 /// ```
 pub fn require_string_body(
   req: Request,
@@ -409,11 +415,13 @@ pub fn require_string_body(
 /// # Examples
 ///
 /// ```
-/// use bits <- glen.require_bit_array_body(req)
+/// fn handle_req(req) {
+///   use bits <- glen.require_bit_array_body(req)
 ///
-/// "Look at all the bits! " <> string.inspect(bits)
-/// |> glen.html(status.ok)
-/// |> promise.resolve
+///   "Look at all the bits! " <> string.inspect(bits)
+///   |> glen.html(status.ok)
+///   |> promise.resolve
+/// }
 /// ```
 pub fn require_bit_array_body(
   req: Request,
@@ -429,13 +437,15 @@ pub fn require_bit_array_body(
 /// # Examples
 ///
 /// ```
-/// use json <- glen.require_json(req)
+/// fn handle_req(req) {
+///   use json <- glen.require_json(req)
 ///
-/// case my_decoder(json) {
-///   Ok(decoded) -> decoded.foo |> glen.text(status.ok)
-///   Error(_) -> glen.response(status.bad_request)
+///   case my_decoder(json) {
+///     Ok(decoded) -> decoded.foo |> glen.text(status.ok)
+///     Error(_) -> glen.response(status.bad_request)
+///   }
+///   |> promise.resolve
 /// }
-/// |> promise.resolve
 /// ```
 pub fn require_json(
   req: Request,
@@ -454,13 +464,15 @@ pub fn require_json(
 /// # Examples
 ///
 /// ```
-/// use formdata <- glen.require_form(req)
+/// fn handle_req(req) {
+///   use formdata <- glen.require_form(req)
 ///
-/// case formdata.values {
-///   [#("name", name)] -> greet(name)
-///   _ -> glen.response(status.bad_request)
+///   case formdata.values {
+///     [#("name", name)] -> greet(name)
+///     _ -> glen.response(status.bad_request)
+///   }
+///   |> promise.resolve
 /// }
-/// |> promise.resolve
 /// ```
 pub fn require_form(
   req: Request,
@@ -506,9 +518,11 @@ fn file_exists(path: String) -> Bool
 /// # Examples
 ///
 /// ```
-/// use <- glen.static(req, "static", "./somedir/static")
+/// fn handle_req(req) {
+///   use <- glen.static(req, "static", "./somedir/static")
 ///
-/// "<img src='/static/image.png'/>" |> glen.html(status.ok) |> promise.resolve
+///   "<img src='/static/image.png'/>" |> glen.html(status.ok) |> promise.resolve
+/// }
 /// ```
 pub fn static(
   req: Request,
@@ -543,8 +557,10 @@ pub fn static(
 /// # Examples
 ///
 /// ```
-/// use <- glen.log(req)
-/// "The request was logged" |> glen.html(status.ok) |> promise.resolve
+/// fn handle_req(req) {
+///   use <- glen.log(req)
+///   // ...requests and responses are now logged...
+/// }
 /// ```
 pub fn log(req: Request, next: fn() -> Promise(Response)) -> Promise(Response) {
   log_timestamp()
@@ -564,6 +580,15 @@ fn do_rescue(
 ///
 /// Gleam code should never crash under normal circumstances, but it's always good
 /// to be prepared.
+///
+/// # Examples
+///
+/// ```
+/// fn handle_req(req) {
+///   use <- glen.rescue_crashes
+///   // ...crashes are now handled gracefully...
+/// }
+/// ```
 pub fn rescue_crashes(handler: fn() -> Promise(Response)) -> Promise(Response) {
   use result <- promise.await(do_rescue(handler))
 
