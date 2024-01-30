@@ -11,7 +11,7 @@
 - Helpful middleware
 - File streaming
 - Bring-your-own server _(optional)_
-- Easily deploy for free on serverless platforms such as [Deno Deploy](https://deno.com/deploy)
+- Easily deploy on serverless platforms such as [Deno Deploy](https://deno.com/deploy)
 
 ...and other nice-to-haves!
 
