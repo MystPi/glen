@@ -1,5 +1,7 @@
 # glen
 
+<img src="./assets/glen.png" width="150" align="right" />
+
 [![Package Version](https://img.shields.io/hexpm/v/glen)](https://hex.pm/packages/glen)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/glen/)
 
