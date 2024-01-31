@@ -35,7 +35,6 @@ gleam add glen
 
 ```gleam
 import gleam/javascript/promise.{type Promise}
-import gleam/http
 import glen
 import glen/status
 
