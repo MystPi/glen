@@ -1,6 +1,6 @@
 # glen
 
-<img src="./assets/glen.png" width="150" align="right" />
+<img src="https://raw.githubusercontent.com/MystPi/glen/main/assets/glen.png" width="150" align="right" />
 
 [![Package Version](https://img.shields.io/hexpm/v/glen)](https://hex.pm/packages/glen)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/glen/)
@@ -51,7 +51,7 @@ fn handle_req(req: glen.Request) -> Promise(glen.Response) {
 }
 ```
 
-Glen is heavily based off of [Wisp](https://github.com/gleam-wisp/wisp), and many of Wisp's [examples](https://github.com/gleam-wisp/wisp/tree/main/examples) can easily be ported to Glen. Glen also has an example application of its own in [./test](./test/).
+Glen is heavily based off of [Wisp](https://github.com/gleam-wisp/wisp), and many of Wisp's [examples](https://github.com/gleam-wisp/wisp/tree/main/examples) can easily be ported to Glen. Glen also has an example application of its own in [./test](https://github.com/MystPi/glen/tree/main/test).
 
 Further documentation can be found at <https://hexdocs.pm/glen>.
 
