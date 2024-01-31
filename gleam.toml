@@ -1,7 +1,7 @@
 name = "glen"
 version = "1.0.0"
 target = "javascript"
-description = "🏕️ A peaceful web framework that targets JS."
+description = "A peaceful web framework that targets JS."
 licences = ["MIT"]
 repository = { type = "github", user = "MystPi", repo = "glen" }
 
