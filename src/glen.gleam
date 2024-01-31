@@ -155,14 +155,14 @@ fn file_stream(path: String, status: Int) -> #(conversation.ResponseBody, Int) {
 /// Set the body of a response.
 ///
 /// > ℹ️ This function is re-exported from `gleam_http`.
-pub const set_body = response.set_body
+pub const set_body: fn(Response, ResponseBody) -> Response = response.set_body
 
 /// Set the header with the given value under the given header key.
 ///
 /// If the response already has that key, it is replaced.
 ///
 /// > ℹ️ This function is re-exported from `gleam_http`.
-pub const set_header = response.set_header
+pub const set_header: fn(Response, String, String) -> Response = response.set_header
 
 /// Set the body of a response to text.
 pub fn text_body(res: Response, text: String) -> Response {
@@ -277,7 +277,7 @@ pub fn unsupported_media_type(supported: List(String)) -> Response {
 ///   _ -> not_found_page()
 /// }
 /// ```
-pub const path_segments = request.path_segments
+pub const path_segments: fn(Request) -> List(String) = request.path_segments
 
 /// Read a request body as text.
 pub fn read_text_body(
