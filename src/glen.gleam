@@ -98,8 +98,8 @@ pub fn serve(handler: Handler, port: Int) -> Nil {
 /// > ℹ️ The [`serve`](#serve) function is recommended when using the `deno` runtime.
 ///
 /// > ℹ️ For lower-level customizability and API freedom, consider using the
-/// [`js_to_glen_request`](#js_to_glen_request) and
-/// [`glen_to_js_response`](#glen_to_js_response) functions.
+/// [`convert_request`](#convert_request) and
+/// [`convert_response`](#convert_response) functions.
 ///
 /// # Examples
 ///
@@ -120,20 +120,20 @@ pub fn custom_serve(
   port: Int,
 ) -> Nil {
   fn(req) {
-    js_to_glen_request(req)
+    convert_request(req)
     |> handler
-    |> promise.map(glen_to_js_response)
+    |> promise.map(convert_response)
   }
   |> server(port)
 }
 
-/// Translate a JavaScript request into a Glen request.
-pub fn js_to_glen_request(req: conversation.JsRequest) -> Request {
+/// Convert a JavaScript request into a Glen request.
+pub fn convert_request(req: conversation.JsRequest) -> Request {
   conversation.translate_request(req)
 }
 
-/// Translate a Glen response into a JavaScript response.
-pub fn glen_to_js_response(res: Response) -> conversation.JsResponse {
+/// Convert a Glen response into a JavaScript response.
+pub fn convert_response(res: Response) -> conversation.JsResponse {
   res
   |> to_conversation_response
   |> conversation.translate_response
