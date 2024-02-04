@@ -2,7 +2,7 @@ import * as $gleam from './gleam.mjs';
 import fs from 'node:fs';
 import { createReadableStreamFromReadable } from './stream.mjs';
 
-export function deno_serve(handler, port) {
+export function deno_serve(port, handler) {
   Deno.serve({ port }, handler);
 }
 

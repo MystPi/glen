@@ -61,9 +61,9 @@ pub type JsHandler =
 /// # Examples
 ///
 /// ```
-/// fn my_serve(handler: glen.Handler, port: Int) -> Nil {
+/// fn my_serve(port: Int, handler: glen.Handler) -> Nil {
 ///   io.println("Starting server...")
-///   glen.serve(handler, port)
+///   glen.serve(port, handler)
 /// }
 /// ```
 pub type Handler =
@@ -72,7 +72,7 @@ pub type Handler =
 // SERVER ----------------------------------------------------------------------
 
 @external(javascript, "./ffi.mjs", "deno_serve")
-fn deno_serve(handler: JsHandler, port: Int) -> Nil
+fn deno_serve(port: Int, handler: JsHandler) -> Nil
 
 /// Start a server using `Deno.serve`.
 ///
@@ -82,15 +82,14 @@ fn deno_serve(handler: JsHandler, port: Int) -> Nil
 /// # Examples
 ///
 /// ```
-/// fn(_req) {
+/// glen.serve(8000, fn(_req) {
 ///   "Hello, world!"
 ///   |> glen.text(status.ok)
 ///   |> promise.resolve
-/// }
-/// |> glen.serve(8000)
+/// })
 /// ```
-pub fn serve(handler: Handler, port: Int) -> Nil {
-  custom_serve(handler, deno_serve, port)
+pub fn serve(port: Int, handler: Handler) -> Nil {
+  custom_serve(port, deno_serve, handler)
 }
 
 /// Start a server using a custom JavaScript server.
@@ -107,24 +106,22 @@ pub fn serve(handler: Handler, port: Int) -> Nil {
 /// @external(javascript, "./serve.mjs", "serve")
 /// fn my_serve(handler: glen.JsHandler) -> Nil
 ///
-/// fn(_req) {
+/// glen.custom_serve(8000, my_serve, fn(_req) {
 ///   "Hello, world!"
 ///   |> glen.text(status.ok)
 ///   |> promise.resolve
-/// }
-/// |> glen.custom_serve(my_serve, 8000)
+/// })
 /// ```
 pub fn custom_serve(
-  handler: Handler,
-  server: fn(JsHandler, Int) -> Nil,
   port: Int,
+  server: fn(Int, JsHandler) -> Nil,
+  handler: Handler,
 ) -> Nil {
-  fn(req) {
+  server(port, fn(req) {
     convert_request(req)
     |> handler
     |> promise.map(convert_response)
-  }
-  |> server(port)
+  })
 }
 
 /// Convert a JavaScript request into a Glen request.

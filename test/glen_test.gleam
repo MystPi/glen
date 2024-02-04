@@ -4,7 +4,7 @@ import glen.{type Request, type Response}
 import glen/status
 
 pub fn main() {
-  glen.serve(handle_req, 8000)
+  glen.serve(8000, handle_req)
 }
 
 fn handle_req(req: Request) -> Promise(Response) {
