@@ -76,8 +76,7 @@ fn deno_serve(port: Int, handler: JsHandler) -> Nil
 
 /// Start a server using `Deno.serve`.
 ///
-/// > ℹ️ Only works when using the `deno` runtime. Try [`custom_serve`](#custom_serve)
-/// for other runtimes such as Node.js.
+/// > ℹ️ Only works when using the `deno` runtime. See the readme for more info.
 ///
 /// # Examples
 ///
@@ -89,39 +88,11 @@ fn deno_serve(port: Int, handler: JsHandler) -> Nil
 /// })
 /// ```
 pub fn serve(port: Int, handler: Handler) -> Nil {
-  custom_serve(port, deno_serve, handler)
-}
+  use req <- deno_serve(port)
 
-/// Start a server using a custom JavaScript server.
-///
-/// > ℹ️ The [`serve`](#serve) function is recommended when using the `deno` runtime.
-///
-/// > ℹ️ For lower-level customizability and API freedom, consider using the
-/// [`convert_request`](#convert_request) and
-/// [`convert_response`](#convert_response) functions.
-///
-/// # Examples
-///
-/// ```
-/// @external(javascript, "./serve.mjs", "serve")
-/// fn my_serve(handler: glen.JsHandler) -> Nil
-///
-/// glen.custom_serve(8000, my_serve, fn(_req) {
-///   "Hello, world!"
-///   |> glen.text(status.ok)
-///   |> promise.resolve
-/// })
-/// ```
-pub fn custom_serve(
-  port: Int,
-  server: fn(Int, JsHandler) -> Nil,
-  handler: Handler,
-) -> Nil {
-  server(port, fn(req) {
-    convert_request(req)
-    |> handler
-    |> promise.map(convert_response)
-  })
+  convert_request(req)
+  |> handler
+  |> promise.map(convert_response)
 }
 
 /// Convert a JavaScript request into a Glen request.

@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Argument ordering of `serve` and `custom_serve` to be `use`-friendly and more idiomatic. [BREAKING]
+- Argument ordering of `serve` and `custom_serve` to be `use`-friendly and more idiomatic.
   > ```gleam
   > // Before
   > pub fn main() {
@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   >   glen.serve(8000, handle_req)
   > }
   > ```
+  >
   > ```gleam
   > // Before
   > pub fn main() {
@@ -36,3 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   >   glen.serve(8000, my_serve, handle_req)
   > }
   > ```
+
+### Removed
+
+- `custom_serve` function in favor of `convert_request` and `convert_response` (more info in the readme).

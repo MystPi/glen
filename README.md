@@ -52,7 +52,44 @@ fn handle_req(req: glen.Request) -> Promise(glen.Response) {
 
 Glen is heavily based off of [Wisp](https://github.com/gleam-wisp/wisp), and many of Wisp's [examples](https://github.com/gleam-wisp/wisp/tree/main/examples) can easily be ported to Glen. Glen also has an example application of its own in [./test](https://github.com/MystPi/glen/tree/main/test).
 
-Further documentation can be found at <https://hexdocs.pm/glen>.
+### Bring-your-own server
+
+Glen's `serve` function only works on the `deno` runtime, but you can bring your own server so Glen can work on any runtime, such as Node.js or Cloudflare Workers. The `convert_request` and `convert_response` functions are here to help you with this. Here is an example of a Glen Cloudflare Worker.
+
+`src/index.js`
+
+```js
+import * as glen from './build/dev/javascript/glen/glen.mjs';
+import * as my_app from './build/dev/javascript/my_app/my_app.mjs';
+
+export default {
+  async fetch(request, _env, _ctx) {
+    const req = glen.convert_request(request);
+    const response = await my_app.handle_req(req);
+    const res = glen.convert_response(response);
+
+    return res;
+  },
+};
+```
+
+`src/my_app.gleam`
+
+```
+import gleam/javascript/promise.{type Promise}
+import glen
+import glen/status
+
+pub fn handle_req(req: glen.Request) -> Promise(glen.Response) {
+  "On a Cloudflare worker!"
+  |> glen.html(status.ok)
+  |> promise.resolve
+}
+```
+
+## Docs
+
+Documentation can be found at <https://hexdocs.pm/glen>.
 
 ## Development
 
