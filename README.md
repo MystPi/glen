@@ -75,7 +75,7 @@ export default {
 
 `src/my_app.gleam`
 
-```
+```gleam
 import gleam/javascript/promise.{type Promise}
 import glen
 import glen/status
