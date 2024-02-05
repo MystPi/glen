@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v2.0.0 - 2024-02-05
+
 ### Added
 
 - Changelog to keep track of changes and releases
@@ -41,3 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - `custom_serve` function in favor of `convert_request` and `convert_response` (more info in the readme).
+
+## Pre-v2.0.0
+
+Pre v2.0.0 versions are not documented in the changelog.
