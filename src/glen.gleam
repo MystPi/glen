@@ -19,7 +19,7 @@ import gleam/http/response.{
   type Response as HttpResponse, Response as HttpResponse,
 }
 import gleam/javascript/promise.{type Promise}
-import conversation.{type JsReadableStream, type JsRequest, type JsResponse}
+import conversation
 import marceau
 import gleam_community/ansi
 import glen/status
@@ -55,6 +55,18 @@ pub type Response =
 /// A JavaScript request handler.
 pub type JsHandler =
   fn(JsRequest) -> Promise(JsResponse)
+
+/// A standard JavaScript [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request).
+pub type JsRequest =
+  conversation.JsRequest
+
+/// A standard JavaScript [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response).
+pub type JsResponse =
+  conversation.JsResponse
+
+/// A standard JavaScript [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
+pub type JsReadableStream =
+  conversation.JsReadableStream
 
 /// A request handler.
 ///
