@@ -52,15 +52,20 @@ fn handle_req(req: glen.Request) -> Promise(glen.Response) {
 
 Glen is heavily based off of [Wisp](https://github.com/gleam-wisp/wisp), and many of Wisp's [examples](https://github.com/gleam-wisp/wisp/tree/main/examples) can easily be ported to Glen. Glen also has an example application of its own in [./test](https://github.com/MystPi/glen/tree/main/test).
 
-### Bring-your-own server
+## Bring-your-own server
 
-Glen's `serve` function only works on the `deno` runtime, but you can bring your own server so Glen can work on any runtime, such as Node.js or Cloudflare Workers. The `convert_request` and `convert_response` functions are here to help you with this. Here is an example of a Glen Cloudflare Worker.
+Glen's `serve` function only works on the `deno` runtime, but you can bring your own server so Glen can work on any runtime, such as Node.js or Cloudflare Workers. The `convert_request` and `convert_response` functions are here to help you with this.
+
+<details>
+  <summary>
+    <b>Cloudflare Workers example</b>
+  </summary>
 
 `src/index.js`
 
 ```js
-import * as glen from '../build/dev/javascript/glen/glen.mjs';
-import * as my_app from '../build/dev/javascript/my_app/my_app.mjs';
+import * as glen from '../glen/glen.mjs';
+import * as my_app from './my_app.mjs';
 
 export default {
   async fetch(request, _env, _ctx) {
@@ -76,16 +81,25 @@ export default {
 `src/my_app.gleam`
 
 ```gleam
-import gleam/javascript/promise.{type Promise}
+import gleam/javascript/promise
 import glen
 import glen/status
 
-pub fn handle_req(req: glen.Request) -> Promise(glen.Response) {
+pub fn handle_req(_req) {
   "On a Cloudflare worker!"
   |> glen.html(status.ok)
   |> promise.resolve
 }
 ```
+
+`wrangler.toml`
+
+```toml
+main = "build/dev/javascript/my_app/index.js"
+# ...
+```
+
+</details>
 
 ## Docs
 
