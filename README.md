@@ -59,8 +59,8 @@ Glen's `serve` function only works on the `deno` runtime, but you can bring your
 `src/index.js`
 
 ```js
-import * as glen from './build/dev/javascript/glen/glen.mjs';
-import * as my_app from './build/dev/javascript/my_app/my_app.mjs';
+import * as glen from '../build/dev/javascript/glen/glen.mjs';
+import * as my_app from '../build/dev/javascript/my_app/my_app.mjs';
 
 export default {
   async fetch(request, _env, _ctx) {
