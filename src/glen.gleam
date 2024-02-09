@@ -21,6 +21,7 @@ import gleam/http/response.{
 import gleam/javascript/promise.{type Promise}
 import conversation
 import marceau
+import filepath
 import gleam_community/ansi
 import glen/status
 
@@ -188,8 +189,7 @@ pub fn bit_array_body(res: Response, bits: BitArray) -> Response {
 pub fn file_body(res: Response, path: String) -> Response {
   let content_type =
     path
-    |> string.split(".")
-    |> list.last
+    |> filepath.extension
     |> result.unwrap("")
     |> string.lowercase
     |> marceau.extension_to_mime_type
@@ -497,14 +497,6 @@ fn remove_preceeding_slashes(path: String) -> String {
   }
 }
 
-fn join_path(a: String, b: String) -> String {
-  let b = remove_preceeding_slashes(b)
-  case string.ends_with(a, "/") {
-    True -> a <> b
-    False -> a <> "/" <> b
-  }
-}
-
 @external(javascript, "./ffi.mjs", "file_exists")
 fn file_exists(path: String) -> Bool
 
@@ -533,8 +525,9 @@ pub fn static(
       let path =
         path
         |> string.drop_left(string.length(prefix))
-        |> string.replace("..", "")
-        |> join_path(directory, _)
+        |> filepath.expand
+        |> result.unwrap("")
+        |> filepath.join(directory, _)
 
       case file_exists(path) {
         False -> next()

@@ -2,7 +2,8 @@
 # You typically do not need to edit this file
 
 packages = [
-  { name = "conversation", version = "1.4.3", build_tools = ["gleam"], requirements = ["gleam_stdlib", "gleam_http", "gleam_javascript"], otp_app = "conversation", source = "hex", outer_checksum = "908B46F60444442785A495197D482558AD8B849C3714A38FAA1940358CC8CCCD" },
+  { name = "conversation", version = "1.4.3", build_tools = ["gleam"], requirements = ["gleam_javascript", "gleam_http", "gleam_stdlib"], otp_app = "conversation", source = "hex", outer_checksum = "908B46F60444442785A495197D482558AD8B849C3714A38FAA1940358CC8CCCD" },
+  { name = "filepath", version = "1.0.0", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "filepath", source = "hex", outer_checksum = "EFB6FF65C98B2A16378ABC3EE2B14124168C0CE5201553DE652E2644DCFDB594" },
   { name = "gleam_community_ansi", version = "1.4.0", build_tools = ["gleam"], requirements = ["gleam_community_colour", "gleam_stdlib"], otp_app = "gleam_community_ansi", source = "hex", outer_checksum = "FE79E08BF97009729259B6357EC058315B6FBB916FAD1C2FF9355115FEB0D3A4" },
   { name = "gleam_community_colour", version = "1.3.0", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "gleam_community_colour", source = "hex", outer_checksum = "A49A5E3AE8B637A5ACBA80ECB9B1AFE89FD3D5351FF6410A42B84F666D40D7D5" },
   { name = "gleam_http", version = "3.5.3", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "gleam_http", source = "hex", outer_checksum = "C2FC3322203B16F897C1818D9810F5DEFCE347F0751F3B44421E1261277A7373" },
@@ -13,6 +14,7 @@ packages = [
 
 [requirements]
 conversation = { version = "~> 1.4" }
+filepath = { version = "~> 1.0"}
 gleam_community_ansi = { version = "~> 1.4" }
 gleam_http = { version = "~> 3.5" }
 gleam_javascript = { version = "~> 0.7" }
