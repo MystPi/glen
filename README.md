@@ -61,7 +61,6 @@ Glen's `serve` function only works on the `deno` runtime, but you can bring your
     <b>Cloudflare Workers example</b>
   </summary>
 
-> [!IMPORTANT]
 > Glen's `static` middleware will not work on the Cloudflare Workers runtime since it does not support the `node:fs` module. Everything else should work as expected.
 
 `src/index.js`
