@@ -35,3 +35,7 @@ export async function rescue(handler) {
     return new $gleam.Error(e.message);
   }
 }
+
+export function now() {
+  return performance.now();
+}

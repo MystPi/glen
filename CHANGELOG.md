@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Improved `log` middleware
+  - More specific response colors for redirectional and informational responses
+  - Logs the amount of time the handler takes to respond in milliseconds
+
 ## v2.1.0 - 2024-02-09
 
 ### Added

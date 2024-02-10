@@ -9,6 +9,7 @@
 import gleam/io
 import gleam/int
 import gleam/list
+import gleam/float
 import gleam/result
 import gleam/string
 import gleam/option
@@ -540,6 +541,9 @@ pub fn static(
   }
 }
 
+@external(javascript, "./ffi.mjs", "now")
+fn now() -> Float
+
 /// Middleware function for logging requests and responses.
 ///
 /// # Examples
@@ -553,8 +557,15 @@ pub fn static(
 pub fn log(req: Request, next: fn() -> Promise(Response)) -> Promise(Response) {
   log_timestamp()
   log_request(req)
+
+  let before = now()
   use res <- promise.await(next())
-  log_response(res)
+  let after = now()
+
+  let time = after -. before
+
+  log_response(res, time)
+
   promise.resolve(res)
 }
 
@@ -638,14 +649,30 @@ fn log_request(req: Request) -> Nil {
   io.println(ansi.blue("[req] ") <> method <> " " <> url)
 }
 
-fn log_response(res: Response) -> Nil {
+fn log_response(res: Response, time: Float) -> Nil {
   let color = case status.classify(res.status) {
     status.Successful -> ansi.green
+    status.Redirection | status.Informational -> ansi.cyan
+    status.ClientError -> ansi.yellow
     status.ServerError -> ansi.red
-    _ -> ansi.yellow
   }
 
-  io.println(color("[res]") <> " ~> " <> int.to_string(res.status))
+  let time =
+    time
+    |> round
+    |> float.to_string
+
+  io.println(
+    color("[res]")
+      <> " ~> "
+      <> int.to_string(res.status)
+      <> ansi.italic(" (" <> time <> "ms)"),
+  )
+}
+
+/// Rounds a Float to 3 decimal places
+fn round(f: Float) -> Float {
+  int.to_float(float.round(f *. 1000.0)) /. 1000.0
 }
 
 fn log_error(message: String) -> Nil {
