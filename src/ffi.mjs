@@ -1,6 +1,6 @@
 import * as $gleam from './gleam.mjs';
+import { Readable } from 'node:stream';
 import fs from 'node:fs';
-import { createReadableStreamFromReadable } from './stream.mjs';
 
 export function deno_serve(port, handler) {
   Deno.serve({ port }, handler);
@@ -11,9 +11,7 @@ export function stream_file(path) {
     if (globalThis.Deno) {
       return new $gleam.Ok(Deno.openSync(path, { read: true }).readable);
     } else {
-      const stream = fs.createReadStream(path);
-      const readableStream = createReadableStreamFromReadable(stream);
-      return new $gleam.Ok(readableStream);
+      return new $gleam.Ok(Readable.toWeb(fs.createReadStream(path)));
     }
   } catch (_e) {
     return new $gleam.Error();
