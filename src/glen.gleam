@@ -619,7 +619,7 @@ pub fn rescue_crashes(handler: fn() -> Promise(Response)) -> Promise(Response) {
 // WEBSOCKETS ------------------------------------------------------------------
 
 @external(javascript, "./ws_ffi.mjs", "upgrade")
-pub fn do_websocket(
+fn do_websocket(
   req: Request,
   on_open: fn(ws.WebsocketConn(event)) -> state,
   on_close: fn(state) -> Nil,
