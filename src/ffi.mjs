@@ -37,3 +37,7 @@ export async function rescue(handler) {
 export function now() {
   return performance.now();
 }
+
+export function identity(x) {
+  return x;
+}
