@@ -78,7 +78,6 @@ fn counter_websocket(req: Request) -> Promise(Response) {
     on_close: stop_repeater,
     on_event: on_event,
   )
-  // do whatever with the connection, such as dispatching events
   Nil
 }
 

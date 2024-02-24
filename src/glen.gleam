@@ -646,7 +646,7 @@ pub fn websocket(
     ws.WebsocketMessage(event),
   ) ->
     state,
-  then do: fn(ws.WebsocketConn(event)) -> Nil,
+  with_conn do: fn(ws.WebsocketConn(event)) -> Nil,
 ) -> Promise(Response) {
   case list.key_find(req.headers, "upgrade") {
     Ok("websocket") -> {
