@@ -14,7 +14,7 @@ class WebsocketConn {
     };
 
     socket.onclose = () => {
-      on_close(this);
+      on_close(this.state);
     };
 
     socket.onmessage = (e) => {
