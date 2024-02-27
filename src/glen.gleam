@@ -619,7 +619,7 @@ pub fn rescue_crashes(handler: fn() -> Promise(Response)) -> Promise(Response) {
 // WEBSOCKETS ------------------------------------------------------------------
 
 @external(javascript, "./ws_ffi.mjs", "upgrade")
-fn do_websocket(
+fn upgrade(
   req: Request,
   on_open: fn(ws.WebsocketConn(event)) -> state,
   on_close: fn(state) -> Nil,
@@ -677,7 +677,7 @@ pub fn websocket(
 ) -> Promise(Response) {
   case list.key_find(req.headers, "upgrade") {
     Ok("websocket") -> {
-      let #(body, conn) = do_websocket(req, on_open, on_close, on_event)
+      let #(body, conn) = upgrade(req, on_open, on_close, on_event)
 
       do(conn)
 

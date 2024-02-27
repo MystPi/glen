@@ -18,15 +18,15 @@ class WebsocketConn {
     };
 
     socket.onmessage = (e) => {
-      let data;
+      let msg;
 
       if (e.data instanceof ArrayBuffer) {
-        data = new $ws.Bits(new Uint8Array(e.data));
+        msg = new $ws.Bits(new Uint8Array(e.data));
       } else {
-        data = new $ws.Text(e.data);
+        msg = new $ws.Text(e.data);
       }
 
-      this.state = on_event(this, this.state, data);
+      this.state = on_event(this, this.state, msg);
     };
   }
 
