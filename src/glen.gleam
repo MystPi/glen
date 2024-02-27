@@ -631,11 +631,38 @@ fn do_websocket(
 /// `upgrade` header set to `websocket`, a response of 426 (upgrade required) will
 /// be returned.
 ///
-/// `on_open` gets called when a client starts a websocket connection.
+/// - `on_open` gets called when a client starts a websocket connection.
+/// - `on_close` is called when the connection in closed.
+/// - `on_event` gets called when the websocket recieves an event or message.
 ///
-/// `on_close` is called when the connection in closed.
+/// # Examples
 ///
-/// `on_event` gets called when the websocket recieves an event or message.
+/// See [this](https://github.com/MystPi/glen/blob/main/test/glen_test.gleam)
+/// for a more detailed example of websockets.
+///
+/// ```
+/// fn handle_req(req) {
+///   use _conn <- glen.websocket(
+///     req,
+///     on_open: on_open,
+///     on_close: on_close,
+///     on_event: on_event,
+///   )
+///   Nil
+/// }
+///
+/// fn on_open(conn) {
+///   // ...
+/// }
+///
+/// fn on_close(state) {
+///   // ...
+/// }
+///
+/// fn on_event(conn, state, msg) {
+///   // ...
+/// }
+/// ```
 pub fn websocket(
   req: Request,
   on_open on_open: fn(ws.WebsocketConn(event)) -> state,

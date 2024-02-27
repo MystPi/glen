@@ -1,3 +1,6 @@
+//// Types and functions for working with websockets. Use the `glen.websocket`
+//// function to start a websocket connection from a request handler.
+
 pub type WebsocketBody
 
 pub type WebsocketConn(event)
@@ -5,12 +8,15 @@ pub type WebsocketConn(event)
 /// A websocket message represents an incoming message from the websocket client,
 /// or a custom event sent from the server via `dispatch_event`.
 pub type WebsocketMessage(event) {
+  /// Recieved a text message
   Text(String)
+  /// Recieved a BitArray message
   Bits(BitArray)
+  /// Recieved a custom event
   Event(event)
 }
 
-/// Send some text to the websocket client.
+/// Send text to the websocket client.
 @external(javascript, "../ws_ffi.mjs", "send_text")
 pub fn send_text(
   conn: WebsocketConn(event),
@@ -24,6 +30,8 @@ pub fn send_bits(
   bits: BitArray,
 ) -> Result(Nil, String)
 
-/// Dispatch a custom event to the event handler.
+/// Dispatch a custom event to the event handler. A custom event allows you to
+/// call the websocket's `on_event` function from the server-side with a message
+/// of `ws.Event(a)`.
 @external(javascript, "../ws_ffi.mjs", "dispatch_event")
 pub fn dispatch_event(conn: WebsocketConn(event), event: event) -> Nil

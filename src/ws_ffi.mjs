@@ -36,6 +36,7 @@ class WebsocketConn {
 }
 
 export function upgrade(req, on_open, on_close, on_event) {
+  // Since req is a Glen request, the body is the original JS Request object
   const { socket, response } = Deno.upgradeWebSocket(req.body);
 
   const conn = new WebsocketConn(socket, on_open, on_close, on_event);
