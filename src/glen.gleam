@@ -88,7 +88,7 @@ pub type Handler =
 
 // SERVER ----------------------------------------------------------------------
 
-@external(javascript, "./ffi.mjs", "deno_serve")
+@external(javascript, "./glen.ffi.mjs", "deno_serve")
 fn deno_serve(port: Int, handler: JsHandler) -> Nil
 
 /// Start a server using `Deno.serve`.
@@ -144,10 +144,10 @@ pub fn convert_response(res: Response) -> conversation.JsResponse {
   }
 }
 
-@external(javascript, "./ffi.mjs", "identity")
+@external(javascript, "./glen.ffi.mjs", "identity")
 fn ws_body_to_response(body: ws.WebsocketBody) -> JsResponse
 
-@external(javascript, "./ffi.mjs", "stream_file")
+@external(javascript, "./glen.ffi.mjs", "stream_file")
 fn do_file_stream(path: String) -> Result(JsReadableStream, Nil)
 
 fn file_stream(path: String, status: Int) -> #(conversation.ResponseBody, Int) {
@@ -511,7 +511,7 @@ fn remove_preceeding_slashes(path: String) -> String {
   }
 }
 
-@external(javascript, "./ffi.mjs", "file_exists")
+@external(javascript, "./glen.ffi.mjs", "file_exists")
 fn file_exists(path: String) -> Bool
 
 /// Middleware for serving up static files from a directory under a path prefix.
@@ -554,7 +554,7 @@ pub fn static(
   }
 }
 
-@external(javascript, "./ffi.mjs", "now")
+@external(javascript, "./glen.ffi.mjs", "now")
 fn now() -> Float
 
 /// Middleware function for logging requests and responses.
@@ -582,7 +582,7 @@ pub fn log(req: Request, next: fn() -> Promise(Response)) -> Promise(Response) {
   promise.resolve(res)
 }
 
-@external(javascript, "./ffi.mjs", "rescue")
+@external(javascript, "./glen.ffi.mjs", "rescue")
 fn do_rescue(
   handler: fn() -> Promise(Response),
 ) -> Promise(Result(Response, String))
@@ -618,7 +618,7 @@ pub fn rescue_crashes(handler: fn() -> Promise(Response)) -> Promise(Response) {
 
 // WEBSOCKETS ------------------------------------------------------------------
 
-@external(javascript, "./ws_ffi.mjs", "upgrade")
+@external(javascript, "./ws.ffi.mjs", "upgrade")
 fn upgrade(
   req: Request,
   on_open: fn(ws.WebsocketConn(event)) -> state,
@@ -707,7 +707,7 @@ pub fn escape_html(string: String) -> String {
 
 // LOGGING ---------------------------------------------------------------------
 
-@external(javascript, "./ffi.mjs", "get_timestamp")
+@external(javascript, "./glen.ffi.mjs", "get_timestamp")
 fn get_timestamp() -> String
 
 fn log_timestamp() -> Nil {
