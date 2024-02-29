@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v2.2.0 - 2024-02-29
+
+### Added
+
+- Websocket support with the new `glen.websocket` API & `glen/ws` module.
+
 ## v2.1.1 - 2024-02-17
 
 ### Changed

@@ -25,6 +25,7 @@ import marceau
 import filepath
 import gleam_community/ansi
 import glen/status
+import glen/ws
 
 // TYPES -----------------------------------------------------------------------
 
@@ -48,6 +49,8 @@ pub type ResponseBody {
   Bits(BitArray)
   /// An empty body, equivalent to `Bits(<<>>)`.
   Empty
+  /// A websocket response body.
+  Websocket(ws.WebsocketBody)
 }
 
 /// An outgoing response.
@@ -85,7 +88,7 @@ pub type Handler =
 
 // SERVER ----------------------------------------------------------------------
 
-@external(javascript, "./ffi.mjs", "deno_serve")
+@external(javascript, "./glen.ffi.mjs", "deno_serve")
 fn deno_serve(port: Int, handler: JsHandler) -> Nil
 
 /// Start a server using `Deno.serve`.
@@ -116,25 +119,35 @@ pub fn convert_request(req: conversation.JsRequest) -> Request {
 
 /// Convert a Glen response into a JavaScript response.
 pub fn convert_response(res: Response) -> conversation.JsResponse {
-  res
-  |> to_conversation_response
-  |> conversation.translate_response
-}
+  let make_res = HttpResponse(res.status, res.headers, _)
 
-fn to_conversation_response(
-  res: Response,
-) -> HttpResponse(conversation.ResponseBody) {
-  let #(body, status) = case res.body {
-    Text(text) -> #(conversation.Text(text), res.status)
-    Bits(bits) -> #(conversation.Bits(bits), res.status)
-    Empty -> #(conversation.Bits(<<>>), res.status)
-    File(path) -> file_stream(path, res.status)
+  case res.body {
+    Text(text) ->
+      make_res(conversation.Text(text))
+      |> conversation.translate_response
+
+    Bits(bits) ->
+      make_res(conversation.Bits(bits))
+      |> conversation.translate_response
+
+    Empty ->
+      make_res(conversation.Bits(<<>>))
+      |> conversation.translate_response
+
+    File(path) -> {
+      let #(body, status) = file_stream(path, res.status)
+      HttpResponse(status, res.headers, body)
+      |> conversation.translate_response
+    }
+
+    Websocket(w) -> ws_body_to_response(w)
   }
-
-  HttpResponse(status, res.headers, body)
 }
 
-@external(javascript, "./ffi.mjs", "stream_file")
+@external(javascript, "./glen.ffi.mjs", "identity")
+fn ws_body_to_response(body: ws.WebsocketBody) -> JsResponse
+
+@external(javascript, "./glen.ffi.mjs", "stream_file")
 fn do_file_stream(path: String) -> Result(JsReadableStream, Nil)
 
 fn file_stream(path: String, status: Int) -> #(conversation.ResponseBody, Int) {
@@ -498,7 +511,7 @@ fn remove_preceeding_slashes(path: String) -> String {
   }
 }
 
-@external(javascript, "./ffi.mjs", "file_exists")
+@external(javascript, "./glen.ffi.mjs", "file_exists")
 fn file_exists(path: String) -> Bool
 
 /// Middleware for serving up static files from a directory under a path prefix.
@@ -541,7 +554,7 @@ pub fn static(
   }
 }
 
-@external(javascript, "./ffi.mjs", "now")
+@external(javascript, "./glen.ffi.mjs", "now")
 fn now() -> Float
 
 /// Middleware function for logging requests and responses.
@@ -569,7 +582,7 @@ pub fn log(req: Request, next: fn() -> Promise(Response)) -> Promise(Response) {
   promise.resolve(res)
 }
 
-@external(javascript, "./ffi.mjs", "rescue")
+@external(javascript, "./glen.ffi.mjs", "rescue")
 fn do_rescue(
   handler: fn() -> Promise(Response),
 ) -> Promise(Result(Response, String))
@@ -603,6 +616,85 @@ pub fn rescue_crashes(handler: fn() -> Promise(Response)) -> Promise(Response) {
   }
 }
 
+// WEBSOCKETS ------------------------------------------------------------------
+
+@external(javascript, "./ws.ffi.mjs", "upgrade")
+fn upgrade(
+  req: Request,
+  on_open: fn(ws.WebsocketConn(event)) -> state,
+  on_close: fn(state) -> Nil,
+  on_event: fn(ws.WebsocketConn(event), state, ws.WebsocketMessage(event)) ->
+    state,
+) -> #(ws.WebsocketBody, ws.WebsocketConn(event))
+
+/// Upgrade a request to become a websocket. If the request does not have an
+/// `upgrade` header set to `websocket`, a response of 426 (upgrade required) will
+/// be returned.
+///
+/// - `on_open` gets called when a client starts a websocket connection.
+/// - `on_close` is called when the connection in closed.
+/// - `on_event` gets called when the websocket recieves an event or message.
+///
+/// > ℹ️ Websockets are currently only supported when using the `deno` runtime.
+///
+/// # Examples
+///
+/// See [this](https://github.com/MystPi/glen/blob/main/test/glen_test.gleam)
+/// for a more detailed example of websockets.
+///
+/// ```
+/// fn handle_req(req) {
+///   use _conn <- glen.websocket(
+///     req,
+///     on_open: on_open,
+///     on_close: on_close,
+///     on_event: on_event,
+///   )
+///   Nil
+/// }
+///
+/// fn on_open(conn) {
+///   // ...
+/// }
+///
+/// fn on_close(state) {
+///   // ...
+/// }
+///
+/// fn on_event(conn, state, msg) {
+///   // ...
+/// }
+/// ```
+pub fn websocket(
+  req: Request,
+  on_open on_open: fn(ws.WebsocketConn(event)) -> state,
+  on_close on_close: fn(state) -> Nil,
+  on_event on_event: fn(
+    ws.WebsocketConn(event),
+    state,
+    ws.WebsocketMessage(event),
+  ) ->
+    state,
+  with_conn do: fn(ws.WebsocketConn(event)) -> Nil,
+) -> Promise(Response) {
+  case list.key_find(req.headers, "upgrade") {
+    Ok("websocket") -> {
+      let #(body, conn) = upgrade(req, on_open, on_close, on_event)
+
+      do(conn)
+
+      // Create a "fake" response with the real response as the body
+      response(0)
+      |> set_body(Websocket(body))
+      |> promise.resolve
+    }
+    _ ->
+      response(status.upgrade_required)
+      |> set_header("upgrade", "websocket")
+      |> promise.resolve
+  }
+}
+
 // UTILITIES -------------------------------------------------------------------
 
 /// Escape a string so it can be included inside of HTML safely. You should run
@@ -617,7 +709,7 @@ pub fn escape_html(string: String) -> String {
 
 // LOGGING ---------------------------------------------------------------------
 
-@external(javascript, "./ffi.mjs", "get_timestamp")
+@external(javascript, "./glen.ffi.mjs", "get_timestamp")
 fn get_timestamp() -> String
 
 fn log_timestamp() -> Nil {
@@ -639,12 +731,12 @@ fn log_request(req: Request) -> Nil {
     |> http.method_to_string
     |> string.uppercase
 
-  let url =
-    http.scheme_to_string(req.scheme)
-    <> "://"
-    <> req.host
-    <> req.path
-    <> get_query_string(req)
+  let scheme = case list.key_find(req.headers, "upgrade") {
+    Ok("websocket") -> "ws"
+    _ -> http.scheme_to_string(req.scheme)
+  }
+
+  let url = scheme <> "://" <> req.host <> req.path <> get_query_string(req)
 
   io.println(ansi.blue("[req] ") <> method <> " " <> url)
 }
@@ -662,12 +754,12 @@ fn log_response(res: Response, time: Float) -> Nil {
     |> round
     |> float.to_string
 
-  io.println(
-    color("[res]")
-      <> " ~> "
-      <> int.to_string(res.status)
-      <> ansi.italic(" (" <> time <> "ms)"),
-  )
+  let info = case res.status == 0 {
+    True -> " websocket started"
+    False -> " ~> " <> int.to_string(res.status)
+  }
+
+  io.println(color("[res]") <> info <> ansi.italic(" (" <> time <> "ms)"))
 }
 
 /// Rounds a Float to 3 decimal places
