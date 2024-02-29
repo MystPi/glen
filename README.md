@@ -12,6 +12,7 @@
 - Request & response helpers
 - Helpful middleware
 - File streaming
+- Websockets
 - Bring-your-own server _(optional)_
 - Easily deploy on serverless platforms such as [Deno Deploy](https://deno.com/deploy)
 

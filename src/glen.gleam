@@ -635,6 +635,8 @@ fn upgrade(
 /// - `on_close` is called when the connection in closed.
 /// - `on_event` gets called when the websocket recieves an event or message.
 ///
+/// > ℹ️ Websockets are currently only supported when using the `deno` runtime.
+///
 /// # Examples
 ///
 /// See [this](https://github.com/MystPi/glen/blob/main/test/glen_test.gleam)

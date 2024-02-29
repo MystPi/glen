@@ -1,5 +1,7 @@
 //// Types and functions for working with websockets. Use the `glen.websocket`
 //// function to start a websocket connection from a request handler.
+////
+//// > ℹ️ Websockets are currently only supported when using the `deno` runtime.
 
 pub type WebsocketBody
 
