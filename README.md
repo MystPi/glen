@@ -40,7 +40,7 @@ import glen
 import glen/status
 
 pub fn main() {
-  glen.serve(handle_req, 8000)
+  glen.serve(8000, handle_req)
 }
 
 fn handle_req(req: glen.Request) -> Promise(glen.Response) {
