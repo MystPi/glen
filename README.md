@@ -108,9 +108,13 @@ main = "build/dev/javascript/my_app/index.js"
 
 Documentation can be found at <https://hexdocs.pm/glen>.
 
-## Development
+## Development & Contributing
+
+You will need to have Gleam and a JavaScript runtime (most likely Deno) installed for developing Glen.
 
 ```sh
 gleam run   # Run the project
 gleam test  # Run the example application
 ```
+
+Contributions are encouraged and greatly appreciated! Please note that the [changelog](CHANGELOG.md) should be updated accordingly (this is something that everyone has trouble remembering, including me 😅).
