@@ -55,14 +55,16 @@ Glen is heavily based off of [Wisp](https://github.com/gleam-wisp/wisp), and man
 
 ## Bring-your-own server
 
-Glen's `serve` function only works on the `deno` runtime, but you can bring your own server so Glen can work on any runtime, such as Node.js (>= v17.0.0) or Cloudflare Workers. The `convert_request` and `convert_response` functions are here to help you with this.
+Glen's `serve` function only works on the `deno` and `bun` runtimes, but you can bring your own server so Glen can work on any runtime, such as Node.js (>= v17.0.0) or Cloudflare Workers. The `convert_request` and `convert_response` functions are here to help you with this.
+
+> ℹ️ Glen does not support Node.js by default since Node.js does not use the web-standard `Request` and `Response` APIs in its built-in web server module.
 
 <details>
   <summary>
     <b>Cloudflare Workers example</b>
   </summary>
 
-> Glen's `static` middleware will not work on the Cloudflare Workers runtime since it does not support the `node:fs` module. Everything else should work as expected.
+> 🚨 Glen's `static` middleware will not work on the Cloudflare Workers runtime since it does not support the `node:fs` module. Everything else should work as expected.
 
 `src/index.js`
 

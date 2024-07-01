@@ -2,14 +2,27 @@ import * as $gleam from './gleam.mjs';
 import { Readable } from 'node:stream';
 import fs from 'node:fs';
 
-export function deno_serve(port, handler) {
-  Deno.serve({ port }, handler);
+export function serve(port, handler) {
+  if (globalThis.Deno) {
+    Deno.serve({ port }, handler);
+  } else if (globalThis.Bun) {
+    Bun.serve({
+      port,
+      fetch: handler,
+    });
+  } else {
+    throw new Error(
+      'The serve function is only available when using Deno or Bun.'
+    );
+  }
 }
 
 export function stream_file(path) {
   try {
     if (globalThis.Deno) {
       return new $gleam.Ok(Deno.openSync(path, { read: true }).readable);
+    } else if (globalThis.Bun) {
+      return new $gleam.Ok(Bun.file(path).stream());
     } else {
       return new $gleam.Ok(Readable.toWeb(fs.createReadStream(path)));
     }

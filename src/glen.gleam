@@ -6,26 +6,26 @@
 //// - [`gleam_javascript`](https://hexdocs.pm/gleam_javascript/) — provides tools
 //// for working with JavaScript promises.
 
-import gleam/io
-import gleam/int
-import gleam/list
-import gleam/float
-import gleam/result
-import gleam/string
-import gleam/option
+import conversation
+import filepath
 import gleam/dynamic.{type Dynamic}
+import gleam/float
 import gleam/http
 import gleam/http/request.{type Request as HttpRequest}
 import gleam/http/response.{
   type Response as HttpResponse, Response as HttpResponse,
 }
+import gleam/int
+import gleam/io
 import gleam/javascript/promise.{type Promise}
-import conversation
-import marceau
-import filepath
+import gleam/list
+import gleam/option
+import gleam/result
+import gleam/string
 import gleam_community/ansi
 import glen/status
 import glen/ws
+import marceau
 
 // TYPES -----------------------------------------------------------------------
 
@@ -88,12 +88,13 @@ pub type Handler =
 
 // SERVER ----------------------------------------------------------------------
 
-@external(javascript, "./glen.ffi.mjs", "deno_serve")
-fn deno_serve(port: Int, handler: JsHandler) -> Nil
+@external(javascript, "./glen.ffi.mjs", "serve")
+fn js_serve(port: Int, handler: JsHandler) -> Nil
 
-/// Start a server using `Deno.serve`.
+/// Start a server using `Deno.serve` or `Bun.serve`.
 ///
-/// > ℹ️ Only works when using the `deno` runtime. See the readme for more info.
+/// > ℹ️ Only works when using the `deno` or `bun` runtime. See the readme for more
+/// info.
 ///
 /// # Examples
 ///
@@ -105,7 +106,7 @@ fn deno_serve(port: Int, handler: JsHandler) -> Nil
 /// })
 /// ```
 pub fn serve(port: Int, handler: Handler) -> Nil {
-  use req <- deno_serve(port)
+  use req <- js_serve(port)
 
   convert_request(req)
   |> handler
@@ -387,8 +388,8 @@ fn handle_read_errors(
     Ok(value) -> next(value)
     Error(error) ->
       case error {
-        conversation.ParseError(_) | conversation.ReadError(_) ->
-          response(status.bad_request)
+        conversation.ParseError(_)
+        | conversation.ReadError(_) -> response(status.bad_request)
         conversation.AlreadyRead -> {
           log_error("Request body has already been read")
           response(status.internal_server_error)
