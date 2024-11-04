@@ -183,7 +183,7 @@ pub fn text_body(res: Response, text: String) -> Response {
 pub fn html_body(res: Response, html: String) -> Response {
   res
   |> set_body(Text(html))
-  |> set_header("content-type", "text/html")
+  |> set_header("content-type", "text/html; charset=utf-8")
 }
 
 /// Set the body of a response to JSON.
