@@ -13,7 +13,7 @@ allow_all = true
 
 [dependencies]
 gleam_stdlib = "~> 0.34 or ~> 1.0"
-conversation = "~> 1.4"
+conversation = "~> 2.0"
 gleam_http = "~> 3.5"
 gleam_javascript = "~> 0.7"
 marceau = "~> 1.1"

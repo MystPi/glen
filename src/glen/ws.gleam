@@ -3,8 +3,6 @@
 ////
 //// > ℹ️ Websockets are currently only supported when using the `deno` runtime.
 
-pub type WebsocketBody
-
 pub type WebsocketConn(event)
 
 /// A websocket message represents an incoming message from the websocket client,

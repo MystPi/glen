@@ -55,7 +55,7 @@ Glen is heavily based off of [Wisp](https://github.com/gleam-wisp/wisp), and man
 
 ## Bring-your-own server
 
-Glen's `serve` function only works on the `deno` runtime, but you can bring your own server so Glen can work on any runtime, such as Node.js (>= v17.0.0) or Cloudflare Workers. The `convert_request` and `convert_response` functions are here to help you with this.
+Glen's `serve` function only works on the `deno` runtime, but you can bring your own server so Glen can work on any runtime, such as Node.js (>= v17.0.0) or Cloudflare Workers. The `to_glen_request` and `to_js_response` functions are here to help you with this.
 
 <details>
   <summary>
@@ -72,9 +72,9 @@ import * as my_app from './my_app.mjs';
 
 export default {
   async fetch(request, _env, _ctx) {
-    const req = glen.convert_request(request);
+    const req = glen.to_glen_request(request);
     const response = await my_app.handle_req(req);
-    const res = glen.convert_response(response);
+    const res = glen.to_js_response(response);
 
     return res;
   },

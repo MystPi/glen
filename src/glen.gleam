@@ -6,26 +6,24 @@
 //// - [`gleam_javascript`](https://hexdocs.pm/gleam_javascript/) — provides tools
 //// for working with JavaScript promises.
 
-import gleam/io
-import gleam/int
-import gleam/list
+import conversation
+import filepath
+import gleam/dynamic.{type Dynamic}
 import gleam/float
+import gleam/http
+import gleam/http/request
+import gleam/http/response
+import gleam/int
+import gleam/io
+import gleam/javascript/promise.{type Promise}
+import gleam/list
+import gleam/option
 import gleam/result
 import gleam/string
-import gleam/option
-import gleam/dynamic.{type Dynamic}
-import gleam/http
-import gleam/http/request.{type Request as HttpRequest}
-import gleam/http/response.{
-  type Response as HttpResponse, Response as HttpResponse,
-}
-import gleam/javascript/promise.{type Promise}
-import conversation
-import marceau
-import filepath
 import gleam_community/ansi
 import glen/status
 import glen/ws
+import marceau
 
 // TYPES -----------------------------------------------------------------------
 
@@ -35,7 +33,7 @@ pub type RequestBody =
 
 /// An incoming request.
 pub type Request =
-  HttpRequest(RequestBody)
+  request.Request(RequestBody)
 
 /// An outgoing response's body.
 pub type ResponseBody {
@@ -49,13 +47,17 @@ pub type ResponseBody {
   Bits(BitArray)
   /// An empty body, equivalent to `Bits(<<>>)`.
   Empty
-  /// A websocket response body.
-  Websocket(ws.WebsocketBody)
 }
 
-/// An outgoing response.
-pub type Response =
-  HttpResponse(ResponseBody)
+/// An outgoing response. This can be a normal Gleam `Response` (from
+/// `gleam/http/response`) or a JavaScript `Response` object.
+///
+/// > ℹ️ Functions that modify a response *will not* change a `RawResponse`! The
+/// > primary purpose of a `RawResponse` is to send it as-is to the client.
+pub type Response {
+  NormalResponse(response.Response(ResponseBody))
+  RawResponse(JsResponse)
+}
 
 /// A JavaScript request handler.
 pub type JsHandler =
@@ -107,45 +109,51 @@ fn deno_serve(port: Int, handler: JsHandler) -> Nil
 pub fn serve(port: Int, handler: Handler) -> Nil {
   use req <- deno_serve(port)
 
-  convert_request(req)
+  to_glen_request(req)
   |> handler
-  |> promise.map(convert_response)
+  |> promise.map(to_js_response)
 }
 
 /// Convert a JavaScript request into a Glen request.
-pub fn convert_request(req: conversation.JsRequest) -> Request {
-  conversation.translate_request(req)
+pub fn to_glen_request(req: JsRequest) -> Request {
+  conversation.to_gleam_request(req)
+}
+
+/// Convert a Glen request into a JavaScript request.
+pub fn to_js_request(req: Request) -> JsRequest {
+  conversation.to_js_request(req)
 }
 
 /// Convert a Glen response into a JavaScript response.
-pub fn convert_response(res: Response) -> conversation.JsResponse {
-  let make_res = HttpResponse(res.status, res.headers, _)
+pub fn to_js_response(res: Response) -> JsResponse {
+  case res {
+    NormalResponse(res) -> {
+      let make_res = response.Response(res.status, res.headers, _)
 
-  case res.body {
-    Text(text) ->
-      make_res(conversation.Text(text))
-      |> conversation.translate_response
+      case res.body {
+        Text(text) ->
+          make_res(conversation.Text(text))
+          |> conversation.to_js_response
 
-    Bits(bits) ->
-      make_res(conversation.Bits(bits))
-      |> conversation.translate_response
+        Bits(bits) ->
+          make_res(conversation.Bits(bits))
+          |> conversation.to_js_response
 
-    Empty ->
-      make_res(conversation.Bits(<<>>))
-      |> conversation.translate_response
+        Empty ->
+          make_res(conversation.Bits(<<>>))
+          |> conversation.to_js_response
 
-    File(path) -> {
-      let #(body, status) = file_stream(path, res.status)
-      HttpResponse(status, res.headers, body)
-      |> conversation.translate_response
+        File(path) -> {
+          let #(body, status) = file_stream(path, res.status)
+          response.Response(status, res.headers, body)
+          |> conversation.to_js_response
+        }
+      }
     }
 
-    Websocket(w) -> ws_body_to_response(w)
+    RawResponse(res) -> res
   }
 }
-
-@external(javascript, "./glen.ffi.mjs", "identity")
-fn ws_body_to_response(body: ws.WebsocketBody) -> JsResponse
 
 @external(javascript, "./glen.ffi.mjs", "stream_file")
 fn do_file_stream(path: String) -> Result(JsReadableStream, Nil)
@@ -163,16 +171,24 @@ fn file_stream(path: String, status: Int) -> #(conversation.ResponseBody, Int) {
 // RESPONSE HELPERS ------------------------------------------------------------
 
 /// Set the body of a response.
-///
-/// > ℹ️ This function is re-exported from `gleam_http`.
-pub const set_body: fn(Response, ResponseBody) -> Response = response.set_body
+pub fn set_body(res: Response, body: ResponseBody) -> Response {
+  case res {
+    RawResponse(_) -> res
+    NormalResponse(http_res) ->
+      NormalResponse(response.set_body(http_res, body))
+  }
+}
 
 /// Set the header with the given value under the given header key.
 ///
 /// If the response already has that key, it is replaced.
-///
-/// > ℹ️ This function is re-exported from `gleam_http`.
-pub const set_header: fn(Response, String, String) -> Response = response.set_header
+pub fn set_header(res: Response, header: String, value: String) -> Response {
+  case res {
+    RawResponse(_) -> res
+    NormalResponse(http_res) ->
+      NormalResponse(response.set_header(http_res, header, value))
+  }
+}
 
 /// Set the body of a response to text.
 pub fn text_body(res: Response, text: String) -> Response {
@@ -215,7 +231,7 @@ pub fn file_body(res: Response, path: String) -> Response {
 
 /// Create a response with the given status code and an empty body.
 pub fn response(status: Int) -> Response {
-  HttpResponse(status, [], Empty)
+  NormalResponse(response.Response(status, [], Empty))
 }
 
 /// Create a response with a text body.
@@ -625,7 +641,7 @@ fn upgrade(
   on_close: fn(state) -> Nil,
   on_event: fn(ws.WebsocketConn(event), state, ws.WebsocketMessage(event)) ->
     state,
-) -> #(ws.WebsocketBody, ws.WebsocketConn(event))
+) -> #(JsResponse, ws.WebsocketConn(event))
 
 /// Upgrade a request to become a websocket. If the request does not have an
 /// `upgrade` header set to `websocket`, a response of 426 (upgrade required) will
@@ -679,13 +695,11 @@ pub fn websocket(
 ) -> Promise(Response) {
   case list.key_find(req.headers, "upgrade") {
     Ok("websocket") -> {
-      let #(body, conn) = upgrade(req, on_open, on_close, on_event)
+      let #(res, conn) = upgrade(req, on_open, on_close, on_event)
 
       do(conn)
 
-      // Create a "fake" response with the real response as the body
-      response(0)
-      |> set_body(Websocket(body))
+      RawResponse(res)
       |> promise.resolve
     }
     _ ->
@@ -742,11 +756,15 @@ fn log_request(req: Request) -> Nil {
 }
 
 fn log_response(res: Response, time: Float) -> Nil {
-  let color = case status.classify(res.status) {
-    status.Successful -> ansi.green
-    status.Redirection | status.Informational -> ansi.cyan
-    status.ClientError -> ansi.yellow
-    status.ServerError -> ansi.red
+  let color = case res {
+    RawResponse(_) -> ansi.dim
+    NormalResponse(response.Response(status:, ..)) ->
+      case status.classify(status) {
+        status.Successful -> ansi.green
+        status.Redirection | status.Informational -> ansi.cyan
+        status.ClientError -> ansi.yellow
+        status.ServerError -> ansi.red
+      }
   }
 
   let time =
@@ -754,9 +772,9 @@ fn log_response(res: Response, time: Float) -> Nil {
     |> round
     |> float.to_string
 
-  let info = case res.status == 0 {
-    True -> " websocket started"
-    False -> " ~> " <> int.to_string(res.status)
+  let info = case res {
+    RawResponse(_) -> " raw JavaScript response"
+    NormalResponse(http_res) -> " ~> " <> int.to_string(http_res.status)
   }
 
   io.println(color("[res]") <> info <> ansi.italic(" (" <> time <> "ms)"))
