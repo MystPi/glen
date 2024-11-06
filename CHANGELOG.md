@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v2.2.1 - 2024-11-06
+
+### Changed
+
+- Charset to `html_body` function. (@R0DR160HM #6)
+
 ## v2.2.0 - 2024-02-29
 
 ### Added
