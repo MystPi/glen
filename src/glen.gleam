@@ -6,26 +6,26 @@
 //// - [`gleam_javascript`](https://hexdocs.pm/gleam_javascript/) — provides tools
 //// for working with JavaScript promises.
 
-import gleam/io
-import gleam/int
-import gleam/list
-import gleam/float
-import gleam/result
-import gleam/string
-import gleam/option
+import conversation
+import filepath
 import gleam/dynamic.{type Dynamic}
+import gleam/float
 import gleam/http
 import gleam/http/request.{type Request as HttpRequest}
 import gleam/http/response.{
   type Response as HttpResponse, Response as HttpResponse,
 }
+import gleam/int
+import gleam/io
 import gleam/javascript/promise.{type Promise}
-import conversation
-import marceau
-import filepath
+import gleam/list
+import gleam/option
+import gleam/result
+import gleam/string
 import gleam_community/ansi
 import glen/status
 import glen/ws
+import marceau
 
 // TYPES -----------------------------------------------------------------------
 
@@ -114,7 +114,7 @@ pub fn serve(port: Int, handler: Handler) -> Nil {
 
 /// Convert a JavaScript request into a Glen request.
 pub fn convert_request(req: conversation.JsRequest) -> Request {
-  conversation.translate_request(req)
+  conversation.to_gleam_request(req)
 }
 
 /// Convert a Glen response into a JavaScript response.
@@ -124,20 +124,20 @@ pub fn convert_response(res: Response) -> conversation.JsResponse {
   case res.body {
     Text(text) ->
       make_res(conversation.Text(text))
-      |> conversation.translate_response
+      |> conversation.to_js_response
 
     Bits(bits) ->
       make_res(conversation.Bits(bits))
-      |> conversation.translate_response
+      |> conversation.to_js_response
 
     Empty ->
       make_res(conversation.Bits(<<>>))
-      |> conversation.translate_response
+      |> conversation.to_js_response
 
     File(path) -> {
       let #(body, status) = file_stream(path, res.status)
       HttpResponse(status, res.headers, body)
-      |> conversation.translate_response
+      |> conversation.to_js_response
     }
 
     Websocket(w) -> ws_body_to_response(w)
@@ -538,7 +538,7 @@ pub fn static(
     http.Get, True -> {
       let path =
         path
-        |> string.drop_left(string.length(prefix))
+        |> string.drop_start(string.length(prefix))
         |> filepath.expand
         |> result.unwrap("")
         |> filepath.join(directory, _)
